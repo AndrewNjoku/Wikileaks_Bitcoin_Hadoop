@@ -55,8 +55,8 @@ public class WikileaksJoinDriver {
 		
 		job.setMapOutputValueClass(Text.class);
 
-		// No need to reduce
-		job.setNumReduceTasks(0);
+		// Only one reduce task needed , in order to sort output of join based on bitcoin amount
+		job.setNumReduceTasks(1);
 		
 		//t input and output destination for the job
 
