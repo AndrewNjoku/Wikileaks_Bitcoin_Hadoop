@@ -52,6 +52,12 @@ public class TransactionOutWritable implements Writable {
 		
 		
 	}
+	
+	public IntWritable getValue() {
+		
+		
+		return value;
+	}
 
 	@Override
 	public void write(DataOutput arg0) throws IOException {
