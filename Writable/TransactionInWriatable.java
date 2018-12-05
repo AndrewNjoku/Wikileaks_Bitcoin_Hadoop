@@ -35,8 +35,7 @@ public class TransactionInWriatable implements Writable{
 	
 	public Text tx_hash = new Text();
 	
-	//This field will be used to make the join between the processed dataset (Vout) and 
-	//the much smaller cached dataset we will be holding in memory
+	
 	public Text vout_magnet = new Text();
 
 	
