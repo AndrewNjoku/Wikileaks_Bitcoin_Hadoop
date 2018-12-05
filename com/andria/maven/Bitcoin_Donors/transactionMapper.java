@@ -14,13 +14,15 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import Helper_Methods.IOMethods;
 import Writable.TransactionInWriatable;
+import Writable.TransactionJoined;
 import Writable.TransactionOutWritable;
 
-public class transactionMapper extends Mapper<LongWritable, Text, Text,Text>  {
+public class transactionMapper extends Mapper<LongWritable, Text, NullWritable,TransactionJoined>  {
 	
 	public static final Log LOG = LogFactory.getLog(WikileaksJoinDriver.class);
 	
@@ -31,7 +33,7 @@ public class transactionMapper extends Mapper<LongWritable, Text, Text,Text>  {
 	
 	//Output from mapper logic will set these fields to be passed to context 
 	
-	private Text outputKey = new Text();
+	private NullWritable outputKey;
 	
 	private Text outputValue = new Text();
 
@@ -118,9 +120,6 @@ public class transactionMapper extends Mapper<LongWritable, Text, Text,Text>  {
 	@Override
 	public void map(LongWritable key, Text tInLine, Context context)
 			throws IOException, InterruptedException {
-		
-		
-		
 		String lineIn = tInLine.toString();
 	
 		
@@ -151,22 +150,37 @@ public class transactionMapper extends Mapper<LongWritable, Text, Text,Text>  {
 		System.err.println(" By golly ! we got a match guys, bout bloody time");
 		
 		
-		//if it isnt null we have a matching record and we need to join the two data sets together 
-
-		//lets create the strings 
 		
-		String TinOutput = String.format("%s|%s|%s", tin.tx_hash, tin.txid, 
-				tin.vout_magnet);
-
-
-		String ToutOutput = String.format("%s|%s|%s", 
-				tout.hash, tout.n,tout.value);
-
-		outputKey.set(TinOutput);
 		
-		outputValue.set(ToutOutput);
 		
-		context.write(outputKey, outputValue);
+		//we have now got two matching transaction objects, we will join the two into a single object and pass as value together with a key 
+		//containing the hash value of the transaction which bound the two in the first place.
+
+		
+		
+		/*
+		
+		String TinOutput = String.format("%s,%s,%s|", tin.tx_hash, tin.txid, tin.vout_magnet);
+
+
+		String ToutOutput = String.format("|%s,%s,%s", tout.hash, tout.n,tout.value);
+        
+    
+        */
+		
+		TransactionJoined d1 = new TransactionJoined();
+		
+		//may they be joined, in holy matrimony
+		
+		d1.Join(tout, tin);
+		
+		//all done this join method will inflate this object with neccessery values
+		
+		
+		
+		//keys is nullwritable as it dont matter, we are doing the sorting in the reducer 
+		
+		context.write(outputKey , d1);
 	}
 
 
