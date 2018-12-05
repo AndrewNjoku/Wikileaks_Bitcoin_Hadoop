@@ -48,8 +48,6 @@ public class WikileaksJoinDriver {
 		
 		job.setMapperClass(transactionMapper.class);
 		//job.setInputFormatClass(SequenceFileInputFormat.class);
-		
-		
 	
 		job.setMapOutputKeyClass(Text.class);
 		

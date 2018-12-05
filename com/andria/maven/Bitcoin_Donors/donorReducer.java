@@ -16,6 +16,10 @@ public class donorReducer extends Reducer<NullWritable, TransactionJoined, Strin
 	String OutputColumnOne;
 	String OutputColumnTwo;
 	ArrayList<TransactionJoined>myTransactionRepo = new ArrayList<>();
+	
+	
+	//This value will dictate how many results to be returned for the top nth Donor transactions to wikileaks
+	int topWhatever =10;
 
 		
 	     
@@ -57,30 +61,24 @@ public class donorReducer extends Reducer<NullWritable, TransactionJoined, Strin
 	        }
 
 	   	  //output the ordered transactions 
-	   	  
-	   	  for( TransactionJoined t: myTransactionRepo)
+	   	
+	   	  for(int i=0;i<topWhatever;i++)
 	   	  {
+	   		 TransactionJoined x = myTransactionRepo.get(i);
+	   		  
+	   		  
 	   		  //First column will just have hashcode
-	   		  OutputColumnOne=t.hash.toString();
+	   		  OutputColumnOne=x.hash.toString();
 	   		  
 	   		  
 	   		  //i have overwritten toString in the object class to properly specify my intended format
-	   		  OutputColumnTwo = t.toString();
-	   		  
-	   		  
-	   	  
+	   		  OutputColumnTwo = x.toString();
+ 
 	   			context.write(OutputColumnOne, OutputColumnTwo);
 	   			
 	   	  }
 	 	
 	   		}
-
-	   	
-	   		
-
-	   		
-
-	
 
 
 }

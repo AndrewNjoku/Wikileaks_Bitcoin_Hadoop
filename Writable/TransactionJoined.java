@@ -66,5 +66,16 @@ public class TransactionJoined implements Writable, WritableComparable<Transacti
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	public String toString() {
+		
+		// we dont need hash as its going to be in the first column 
+		
+		return " ID:" +txid+", N:"+n+", Vout:"+vout+ ", Bitcoin:" + value;
+		
+		
+		
+	}
 
 }
