@@ -3,23 +3,26 @@ package com.andria.maven.Bitcoin_Donors;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import Helper_Methods.ComparatorByBitcoin;
 import Writable.TransactionJoined;
 import Writable.TransactionOutWritable;
 
-public class donorReducer extends Reducer<NullWritable, TransactionJoined, String , String>{
+public class donorReducer extends Reducer<NullWritable, Text,NullWritable, Text>{
 	
-	String OutputColumnOne;
-	String OutputColumnTwo;
+	//We need to rebuild data using the ReadField method of serialized objecgt passed from the mapper to this reducer
+	
+    Text Output = new Text();
 	ArrayList<TransactionJoined>myTransactionRepo = new ArrayList<>();
 	
 	
 	//This value will dictate how many results to be returned for the top nth Donor transactions to wikileaks
-	int topWhatever =10;
+	int topWhatever =20;
 
 		
 	     
@@ -29,54 +32,63 @@ public class donorReducer extends Reducer<NullWritable, TransactionJoined, Strin
 	//   
 
 	   	@Override
-	   	public void reduce( NullWritable key, Iterable<TransactionJoined>values, Context context) throws IOException, InterruptedException{
+	   	public void reduce( NullWritable key, Iterable<Text>values, Context context) throws IOException, InterruptedException{
 
 	   		
-	   		for (TransactionJoined a : values) {
+	   		for (Text a : values) {
 	   			
-	   			myTransactionRepo.add(a);
-	  
+	   			String joinedReducer = a.toString();
+	   			
+	   			String [] split = joinedReducer.split(",");
+	   			
+	   			TransactionJoined ab = new TransactionJoined();
+	   			
+	   			//int btc=Integer.parseInt(split[4]);
+	   			
+	   			ab.inflate(split[0],split[1],split[2],split[3],split[4]);
+	   			
+	   			
+	   			
+	   			myTransactionRepo.add(ab);
+	   			
+	   		
 		   			}
-
-	   		//using good old fashioned bubble sort 
-	   		//can then simply emit the first N values for output
-	   		TransactionJoined temp;
+		   			
+	   		
+	   		//Compare by bitcoin value, Sort array
+	   		
+	   	Collections.sort(myTransactionRepo, new ComparatorByBitcoin());
+	   	 
+	   	TransactionJoined temp;
+	   	 //get the top nth donors based on the value of N being the global variable above 
+	   	 
 	   	
-	   	  if (myTransactionRepo.size()>1) // check if the number of orders is larger than 1
-	        {
-	            for (int x=0; x<myTransactionRepo.size(); x++) // bubble sort outer loop
-	            {
-	                for (int i=0; i < myTransactionRepo.size()-x; i++) {
-	                	
-	                	//I can use my custom implementation here 
-	                	
-	                    if (myTransactionRepo.get(i).compareTo(myTransactionRepo.get(i+1)) > 0)
-	                    {
-	                        temp = myTransactionRepo.get(i);
-	                        myTransactionRepo.set(i,myTransactionRepo.get(i+1) );
-	                        myTransactionRepo.set(i+1, temp);
-	                    }
-	                }
-	            }
-	        }
+	   	 for (int i=0; i<topWhatever;i++)
+	   	 {
+	   		 temp = myTransactionRepo.get(i);
+	   		 
+	   		
+	 		String FinalOutput = String.format("%s,%s,%s,%s","Hash:"+ temp.getHash(),"ID:"+temp.getId(),"Vout:"+temp.getVout(),"N:"+temp.getN());
+	 		
+	 		String val="BTC: "+temp.getBtc().toString();
+	 		
+	 		Text FinalOut = new Text(FinalOutput+val);
+	 		
+	 		//context.write(NullWritable.get(),FinalOut );
+	 		
+	 		
+	 		context.write(NullWritable.get(),FinalOut );
+	   		 
+	   		 
+	   	 }
+	   	 
+	   	 
+	   
 
-	   	  //output the ordered transactions 
+	   		
 	   	
-	   	  for(int i=0;i<topWhatever;i++)
-	   	  {
-	   		 TransactionJoined x = myTransactionRepo.get(i);
-	   		  
-	   		  
-	   		  //First column will just have hashcode
-	   		  OutputColumnOne=x.hash.toString();
-	   		  
-	   		  
-	   		  //i have overwritten toString in the object class to properly specify my intended format
-	   		  OutputColumnTwo = x.toString();
- 
-	   			context.write(OutputColumnOne, OutputColumnTwo);
-	   			
-	   	  }
+	   	  
+	   	  
 	 	
 	   		}
 
