@@ -6,10 +6,13 @@ import java.net.URISyntaxException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+import Writable.TransactionJoined;
 
 public class WikileaksJoinDriver {
 	
@@ -47,11 +50,15 @@ public class WikileaksJoinDriver {
 		// Mapper configuration
 		
 		job.setMapperClass(transactionMapper.class);
+		job.setReducerClass(donorReducer.class);
 		//job.setInputFormatClass(SequenceFileInputFormat.class);
 	
-		job.setMapOutputKeyClass(Text.class);
 		
+		job.setOutputKeyClass(NullWritable.class);
+
 		job.setMapOutputValueClass(Text.class);
+		
+		
 
 		// Only one reduce task needed , in order to sort output of join based on bitcoin amount
 		job.setNumReduceTasks(1);
