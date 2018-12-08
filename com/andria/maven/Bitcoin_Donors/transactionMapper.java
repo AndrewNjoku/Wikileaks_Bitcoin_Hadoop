@@ -22,7 +22,7 @@ import Writable.TransactionInWriatable;
 import Writable.TransactionJoined;
 import Writable.TransactionOutWritable;
 
-public class transactionMapper extends Mapper<LongWritable, Text, NullWritable,TransactionJoined>  {
+public class transactionMapper extends Mapper<LongWritable, Text, NullWritable,Text>  {
 	
 	public static final Log LOG = LogFactory.getLog(WikileaksJoinDriver.class);
 	
@@ -33,7 +33,7 @@ public class transactionMapper extends Mapper<LongWritable, Text, NullWritable,T
 	
 	//Output from mapper logic will set these fields to be passed to context 
 	
-	private NullWritable outputKey;
+	//public NullWritable outputKey = new NullWritable(null);
 	
 	private Text outputValue = new Text();
 
@@ -121,66 +121,59 @@ public class transactionMapper extends Mapper<LongWritable, Text, NullWritable,T
 	public void map(LongWritable key, Text tInLine, Context context)
 			throws IOException, InterruptedException {
 		String lineIn = tInLine.toString();
-	
-		
+
 		//parse the text file containing input data set
 		//into newly created Tin object
 		TransactionInWriatable tin = new TransactionInWriatable();
-		
-		
-		tin.parseLine(lineIn);
-		
-		
-		System.err.println(" This is what we are dealing with in the mapper, The returned key to be compared :"+ tin.getHashForJoin());
-		
 
+		tin.parseLine(lineIn);
+	
 		TransactionOutWritable tout = Dictionary.get(tin.getHashForJoin());
 		
-
 		// Ignore if the corresponding entry doesn't exist in the projects data (INNER JOIN)
 		if (tout == null) {
 			
 
-			System.err.println(" This Map iteration is null , no join performed ");
+			System.out.println(" This Map iteration is null , no join performed ");
 			
 			return;
 			
 		}
 		
-		System.err.println(" By golly ! we got a match guys, bout bloody time");
 		
+		
+		
+		
+		String combined = String.format("%s,%s,%s,%s,%s" ,tin.tx_hash, tin.txid, tin.vout_magnet,tout.n,tout.value);
+        
+		
+		System.out.println("Testing Combined: " + combined);
+	
+		
+		Text myOutput = new Text();
+				
+				myOutput.set(combined);
 		
 		
 		
 		
 		//we have now got two matching transaction objects, we will join the two into a single object and pass as value together with a key 
-		//containing the hash value of the transaction which bound the two in the first place.
-
-		
+		//containing the hash value of the transaction which bound the two in the first place
 		
 		/*
 		
 		String TinOutput = String.format("%s,%s,%s|", tin.tx_hash, tin.txid, tin.vout_magnet);
-
-
 		String ToutOutput = String.format("|%s,%s,%s", tout.hash, tout.n,tout.value);
         
-    
         */
 		
-		TransactionJoined d1 = new TransactionJoined();
-		
-		//may they be joined, in holy matrimony
-		
-		d1.Join(tout, tin);
-		
-		//all done this join method will inflate this object with neccessery values
 		
 		
 		
+
 		//keys is nullwritable as it dont matter, we are doing the sorting in the reducer 
 		
-		context.write(outputKey , d1);
+		context.write(NullWritable.get() , myOutput);
 	}
 
 
